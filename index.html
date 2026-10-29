@@ -35,7 +35,7 @@
     }
 
     /* =========================================================
-       NUEVA PORTADA A PANTALLA COMPLETA (HERO FULLSCREEN COLORIDO)
+       PORTADA A PANTALLA COMPLETA (HERO FULLSCREEN COLORIDO)
        ========================================================= */
     .hero-fullpage {
       position: relative;
@@ -110,11 +110,11 @@
       position: relative;
       z-index: 5;
       max-width: 900px;
-      pointer-events: none; /* Permite hacer clic en el canvas de atrás (peces / fuegos artificiales) */
+      pointer-events: none;
     }
 
     .hero-content * {
-      pointer-events: auto; /* Reactiva clics en botones y textos internos */
+      pointer-events: auto;
     }
 
     .hero-title {
@@ -646,6 +646,47 @@
       border-radius: 4px;
     }
 
+    /* ESTILOS SECCIÓN REFERENCIAS */
+    .seccion-referencias {
+      margin-top: 55px;
+      padding-top: 20px;
+      border-top: 1px solid #334155;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .referencias-titulo {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #7dd3fc;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .referencias-lista {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .referencia-item {
+      line-height: 1.5;
+      word-break: break-word;
+      padding-left: 15px;
+      border-left: 2px solid #0284c7;
+    }
+    .referencia-link {
+      color: #38bdf8;
+      text-decoration: none;
+      transition: color 0.2s ease, text-decoration 0.2s ease;
+    }
+    .referencia-link:hover {
+      color: #00ff66;
+      text-decoration: underline;
+    }
+
     /* MODAL PUBLICAR TRABAJO */
     .modal {
       display: none;
@@ -676,7 +717,6 @@
 
     /* =========================================================
        ADAPTACIÓN EXCLUSIVA PARA DISPOSITIVOS MÓVILES (MAX-WIDTH: 768PX)
-       SECCIÓN DE RETO DE CAMUFLAJE RESPONSIVA Y PANTALLA COMPLETA
        ========================================================= */
     @media (max-width: 768px) {
       .container {
@@ -718,7 +758,6 @@
         font-size: 0.85rem;
       }
 
-      /* Contenedor del lienzo responsivo proporcional (Aspect Ratio 1068x561) */
       #canvas-viewport {
         width: 100%;
         height: auto;
@@ -726,7 +765,6 @@
         touch-action: none;
       }
 
-      /* Escalado visual exacto del lienzo nativo a la pantalla móvil */
       #canvas-world {
         width: 100%;
         height: 100%;
@@ -1024,6 +1062,23 @@
   <!-- SECCIÓN COMUNIDAD -->
   <h2 class="section-title">🌐 Galería de la Comunidad</h2>
   <div id="grid-comunidad" class="grid-comunidad"></div>
+
+  <!-- SECCIÓN DE REFERENCIAS BIBLIOGRÁFICAS -->
+  <footer class="seccion-referencias">
+    <div class="referencias-titulo">📚 Referencias y Fuentes Informativas</div>
+    <ul class="referencias-lista">
+      <li class="referencia-item">
+        National Geographic. (2025, octubre). ¿Qué causa el blanqueamiento de los corales? Así es como amenaza la vida marina y humana. <em>National Geographic Latinoamérica</em>. <a href="https://www.nationalgeographicla.com/medio-ambiente/2025/10/que-causa-el-blanqueamiento-de-los-corales-asi-es-como-amenaza-la-vida-marina-y-humana" target="_blank" rel="noopener noreferrer" class="referencia-link">https://www.nationalgeographicla.com/medio-ambiente/2025/10/que-causa-el-blanqueamiento-de-los-corales-asi-es-como-amenaza-la-vida-marina-y-humana</a>
+      </li>
+      <li class="referencia-item">
+        Infobae. (2025, octubre 13). Advierten que la Tierra alcanzó el primer punto de inflexión climático global por la desaparición de los arrecifes de coral. <em>Infobae</em>. <a href="https://www.infobae.com/america/medio-ambiente/2025/10/13/advierten-que-la-tierra-alcanzo-el-primer-punto-de-inflexion-climatico-global-por-la-desaparicion-de-los-arrecifes-de-coral/" target="_blank" rel="noopener noreferrer" class="referencia-link">https://www.infobae.com/america/medio-ambiente/2025/10/13/advierten-que-la-tierra-alcanzo-el-primer-punto-de-inflexion-climatico-global-por-la-desaparicion-de-los-arrecifes-de-coral/</a>
+      </li>
+      <li class="referencia-item">
+        Gamers Wiki. (2025, octubre). Meccha Chameleon: Dos meses de Lemorion y Haganeiro. <em>Gamers Wiki</em>. <a href="https://gamers.wiki/es/juegos/meccha-chameleon/noticias/meccha-chameleon-dos-meses-de-lemorion-y-haganeiro" target="_blank" rel="noopener noreferrer" class="referencia-link">https://gamers.wiki/es/juegos/meccha-chameleon/noticias/meccha-chameleon-dos-meses-de-lemorion-y-haganeiro</a>
+      </li>
+    </ul>
+  </footer>
+
 </div>
 
 <!-- MODAL FELICITACIÓN Y INFORMACIÓN REVELADA -->
@@ -1094,7 +1149,6 @@ class PezHero {
 
   update(peces) {
     if (this.isExploding) {
-      // Física de fuegos artificiales al estallar
       this.x += this.vx;
       this.y += this.vy;
       this.vy += 0.25; 
@@ -1396,7 +1450,6 @@ function estaSobrePersonaje(x, y) {
   return x >= charPos.x && x <= charPos.x + w && y >= charPos.y && y <= charPos.y + h;
 }
 
-/* Helper para obtener coordenadas precisas del evento (mouse o touch) */
 function getPointerPosition(e) {
   const rect = charCanvas.getBoundingClientRect();
   const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
