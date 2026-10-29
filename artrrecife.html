@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Art-rrecife</title>
+  
+  <!-- Librerías de Mapas (Leaflet CSS y JS) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Librería para Capturas de Pantalla -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --panel-bg: #1e293b;
+      --text-color: #f8fafc;
+      --accent-color: #334155;
+      --primary-color: #0284c7;
+      --success-color: #00ff66;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+    }
+
+    /* =========================================================
+       PORTADA A PANTALLA COMPLETA (HERO FULLSCREEN COLORIDO)
+       ========================================================= */
+    .hero-fullpage {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px 20px 80px 20px;
+      box-sizing: border-box;
+      background: linear-gradient(135deg, #0284c7 0%, #0f172a 40%, #2e1065 75%, #065f46 100%);
+      overflow: hidden;
+    }
+
+    /* Canvas exclusivo de banco masivo de peces y fuegos artificiales */
+    #hero-fish-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    /* Animación de fondo brillante de coral */
+    .hero-bg-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(244, 63, 94, 0.35) 0%, rgba(56, 189, 248, 0.2) 40%, rgba(0,0,0,0) 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      filter: blur(50px);
+      animation: pulseGlow 6s ease-in-out infinite alternate;
+      z-index: 1;
+    }
+
+    @keyframes pulseGlow {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; }
+      100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    }
+
+    /* BURBUJAS ANIMADAS SWELL */
+    .burbuja {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      bottom: -60px;
+      animation: floatUp linear infinite;
+      z-index: 3;
+    }
+
+    .burbuja:nth-child(1) { width: 40px; height: 40px; left: 10%; animation-duration: 7s; animation-delay: 0s; }
+    .burbuja:nth-child(2) { width: 20px; height: 20px; left: 25%; animation-duration: 5s; animation-delay: 1s; }
+    .burbuja:nth-child(3) { width: 50px; height: 50px; left: 45%; animation-duration: 9s; animation-delay: 2s; }
+    .burbuja:nth-child(4) { width: 15px; height: 15px; left: 70%; animation-duration: 6s; animation-delay: 0.5s; }
+    .burbuja:nth-child(5) { width: 35px; height: 35px; left: 85%; animation-duration: 8s; animation-delay: 3s; }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(1); opacity: 0.8; }
+      100% { transform: translateY(-110vh) scale(1.3); opacity: 0; }
+    }
+
+    /* CONTENIDO INTERIOR HERO */
+    .hero-content {
+      position: relative;
+      z-index: 5;
+      max-width: 900px;
+      pointer-events: none;
+    }
+
+    .hero-content * {
+      pointer-events: auto;
+    }
+
+    .hero-title {
+      font-size: 4rem;
+      font-weight: 900;
+      letter-spacing: -1px;
+      margin: 0 0 15px 0;
+      background: linear-gradient(90deg, #38bdf8, #00ff66, #f43f5e, #a855f7);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientShift 5s ease infinite;
+      text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .hero-text-box {
+      background: rgba(15, 23, 42, 0.65);
+      border: 2px solid rgba(56, 189, 248, 0.4);
+      backdrop-filter: blur(12px);
+      padding: 28px 35px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 0 15px rgba(56, 189, 248, 0.2);
+      margin-bottom: 30px;
+    }
+
+    .hero-description {
+      font-size: 1.25rem;
+      line-height: 1.7;
+      color: #e2e8f0;
+      margin: 0;
+    }
+
+    .hero-description strong {
+      color: #38bdf8;
+    }
+
+    /* INSIGNIAS COLORIDAS */
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 35px;
+    }
+
+    .pill-badge {
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+    }
+
+    .pill-badge:hover {
+      transform: translateY(-4px) scale(1.05);
+    }
+
+    .pill-arte { background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; }
+    .pill-ciencia { background: linear-gradient(135deg, #06b6d4, #3b82f6); color: #fff; }
+    .pill-educacion { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+
+    /* BOTÓN EXPLORAR Y FLECHA ANIMADA */
+    .btn-explorar {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(90deg, #38bdf8, #00ff66);
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 1.15rem;
+      padding: 16px 36px;
+      border-radius: 40px;
+      text-decoration: none;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.6);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-explorar:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 35px rgba(0, 255, 102, 0.8);
+    }
+
+    .scroll-arrow {
+      position: absolute;
+      bottom: 25px;
+      z-index: 5;
+      font-size: 2rem;
+      color: #38bdf8;
+      animation: bounceArrow 2s infinite;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    @keyframes bounceArrow {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-12px); }
+      60% { transform: translateY(-6px); }
+    }
+
+    /* OLA MARINA EN LA PARTE INFERIOR DEL HERO */
+    .wave-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      overflow: hidden;
+      line-height: 0;
+      z-index: 4;
+    }
+
+    .wave-svg {
+      position: relative;
+      display: block;
+      width: calc(100% + 1.3px);
+      height: 60px;
+    }
+
+    .wave-svg path {
+      fill: #0f172a;
+    }
+
+    /* CONTENEDOR PRINCIPAL DEL CONTENIDO */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .section-title {
+      color: #38bdf8;
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 8px;
+      margin-top: 30px;
+    }
+    .subsection-title {
+      color: #7dd3fc;
+      margin-top: 20px;
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+    #camuflaje-container {
+      background: var(--panel-bg);
+      color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .panel-controles {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      background: #0f172a;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    .btn-control {
+      padding: 6px 12px;
+      cursor: pointer;
+      background: #334155;
+      color: white;
+      border: 1px solid #475569;
+      border-radius: 4px;
+      transition: 0.2s;
+    }
+    .btn-control:hover {
+      background: #475569;
+    }
+    .btn-control.primary {
+      background: var(--primary-color);
+      border-color: #38bdf8;
+      font-weight: bold;
+    }
+    .btn-control.primary:hover {
+      background: #0369a1;
+    }
+    #canvas-viewport {
+      width: 100%;
+      height: 550px;
+      overflow: hidden;
+      position: relative;
+      border: 2px solid var(--primary-color);
+      border-radius: 8px;
+      cursor: grab;
+      background: #000;
+      box-sizing: border-box;
+    }
+    #canvas-world {
+      position: absolute;
+      transform-origin: 0 0;
+      top: 0;
+      left: 0;
+    }
+    .toggle-modo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #1e293b;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* ESTILOS DE MONITOREO Y MAPA */
+    .lab-color-sec {
+      background: var(--panel-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      border: 1px solid #334155;
+    }
+    .selector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      background: #0f172a;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    .selector-grid label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+    .selector-grid select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      background: #1e293b;
+      color: white;
+      border: 1px solid #334155;
+      box-sizing: border-box;
+    }
+    #map-container {
+      height: 300px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #334155;
+      z-index: 1;
+    }
+    .info-box {
+      background: rgba(255, 165, 0, 0.1);
+      border-left: 5px solid orange;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+
+    /* ESTILOS ACORDEÓN / DESPLEGABLE CONSECUENCIAS */
+    .btn-desplegable {
+      width: 100%;
+      background: #1e293b;
+      color: #ef4444;
+      border: 1px solid #ef4444;
+      padding: 14px 20px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      text-align: left;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.3s ease;
+      margin-top: 25px;
+    }
+    .btn-desplegable:hover {
+      background: #291d28;
+    }
+    .panel-consecuencias {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out;
+      background: #0f172a;
+      border-radius: 0 0 8px 8px;
+      border: 1px solid transparent;
+    }
+    .panel-consecuencias.activo {
+      border-color: #334155;
+      border-top: none;
+      padding: 20px;
+    }
+
+    /* ESTILOS DEL JUEGO DE PALABRAS DESORDENADAS */
+    .juego-palabras-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .card-juego-palabra {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-left: 4px solid #ef4444;
+      border-radius: 8px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.2s ease, border-color 0.3s ease;
+    }
+    .card-juego-palabra.completada {
+      border-left-color: #00ff66;
+      background: rgba(0, 255, 102, 0.05);
+    }
+    .card-juego-palabra:hover {
+      transform: translateY(-2px);
+    }
+    .badge-juego {
+      align-self: flex-start;
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .badge-ecologica { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid #38bdf8; }
+    .badge-economica { background: rgba(250, 204, 21, 0.2); color: #facc15; border: 1px solid #facc15; }
+    .badge-social { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+
+    .palabra-desordenada {
+      font-family: monospace;
+      font-size: 1.25rem;
+      letter-spacing: 4px;
+      font-weight: bold;
+      color: #38bdf8;
+      background: #0f172a;
+      padding: 10px 12px;
+      border-radius: 6px;
+      text-align: center;
+      border: 1px dashed #38bdf8;
+      word-break: break-all;
+    }
+    .input-adivinar {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+    }
+    .input-adivinar:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+    .box-acciones-juego {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* MODAL FELICITACION Y REVELACION DE INFORMACION */
+    .modal-felicitacion {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+    }
+    .modal-felicitacion-content {
+      background: #1e293b;
+      border: 2px solid #00ff66;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 100%;
+      padding: 25px;
+      box-shadow: 0 0 25px rgba(0, 255, 102, 0.3);
+      animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes modalPop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .modal-felicitacion-header {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .modal-felicitacion-header h3 {
+      margin: 5px 0;
+      color: #00ff66;
+      font-size: 1.5rem;
+    }
+    .info-revelada-box {
+      background: #0f172a;
+      border-left: 4px solid #38bdf8;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+    }
+    .info-revelada-box h4 {
+      margin: 0 0 8px 0;
+      color: #38bdf8;
+      font-size: 1.1rem;
+    }
+    .info-revelada-box p {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    /* ESTILOS DE ACCIONES Y TECNICAS */
+    .grid-acciones {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 15px;
+      margin-top: 10px;
+    }
+    .card-accion {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-left: 4px solid #38bdf8;
+      border-radius: 8px;
+      padding: 15px;
+      transition: transform 0.2s ease;
+    }
+    .card-accion.ciencia {
+      border-left-color: #a855f7;
+    }
+    .card-accion.peligro {
+      border-left-color: #ef4444;
+    }
+    .card-accion:hover {
+      transform: translateY(-3px);
+    }
+    .card-accion h4 {
+      margin: 0 0 8px 0;
+      color: #38bdf8;
+      font-size: 1.05rem;
+    }
+    .card-accion.ciencia h4 {
+      color: #c084fc;
+    }
+    .card-accion.peligro h4 {
+      color: #fca5a5;
+    }
+    .card-accion p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    /* ESTILOS DE COMUNIDAD */
+    .grid-comunidad {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .card-publicacion {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-publicacion img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      background: #0f172a;
+    }
+    .card-body {
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-autor {
+      font-weight: bold;
+      color: #38bdf8;
+      margin: 0 0 5px 0;
+    }
+    .card-desc {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      margin: 0 0 10px 0;
+    }
+    .comentarios-seccion {
+      border-top: 1px solid #334155;
+      padding-top: 10px;
+      margin-top: auto;
+    }
+    .lista-comentarios {
+      max-height: 100px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    .comentario-item {
+      background: #0f172a;
+      padding: 5px 8px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+    }
+    .input-comentario-box {
+      display: flex;
+      gap: 5px;
+    }
+    .input-comentario-box input {
+      flex-grow: 1;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    /* ESTILOS SECCIÓN REFERENCIAS */
+    .seccion-referencias {
+      margin-top: 55px;
+      padding-top: 20px;
+      border-top: 1px solid #334155;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .referencias-titulo {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #7dd3fc;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .referencias-lista {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .referencia-item {
+      line-height: 1.5;
+      word-break: break-word;
+      padding-left: 15px;
+      border-left: 2px solid #0284c7;
+    }
+    .referencia-link {
+      color: #38bdf8;
+      text-decoration: none;
+      transition: color 0.2s ease, text-decoration 0.2s ease;
+    }
+    .referencia-link:hover {
+      color: #00ff66;
+      text-decoration: underline;
+    }
+
+    /* MODAL PUBLICAR TRABAJO */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .modal-content input, .modal-content textarea {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: white;
+      padding: 8px;
+      border-radius: 4px;
+    }
+
+    /* =========================================================
+       ADAPTACIÓN EXCLUSIVA PARA DISPOSITIVOS MÓVILES (MAX-WIDTH: 768PX)
+       ========================================================= */
+    @media (max-width: 768px) {
+      .container {
+        padding: 12px;
+      }
+
+      .hero-title {
+        font-size: 2.3rem;
+      }
+
+      .hero-text-box {
+        padding: 18px 20px;
+      }
+
+      .hero-description {
+        font-size: 1rem;
+      }
+
+      #camuflaje-container {
+        padding: 10px;
+        border-radius: 10px;
+      }
+
+      .panel-controles {
+        padding: 10px;
+        gap: 8px;
+      }
+
+      .panel-controles > div {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .btn-control {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+      }
+
+      #canvas-viewport {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1068 / 561;
+        touch-action: none;
+      }
+
+      #canvas-world {
+        width: 100%;
+        height: 100%;
+      }
+
+      #bg-canvas,
+      #character-canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      #camuflaje-container div[style*="display: flex; justify-content: space-between"] {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- PORTADA FULLSCREEN ANIMADA Y COLORIDA -->
+<section class="hero-fullpage" id="hero-section">
+  <!-- Canvas exclusivo de banco masivo de peces y fuegos artificiales -->
+  <canvas id="hero-fish-canvas"></canvas>
+
+  <div class="hero-bg-glow"></div>
+
+  <!-- BURBUJAS QUE FLOTAN -->
+  <div class="burbuja"></div>
+  <div class="burbuja"></div>
+  <div class="burbuja"></div>
+  <div class="burbuja"></div>
+  <div class="burbuja"></div>
+
+  <div class="hero-content">
+    <h1 class="hero-title">🪸 Art-rrecife</h1>
+
+    <div class="hero-text-box">
+      <p class="hero-description">
+        <strong>Art-rrecife</strong> es una plataforma interactiva que combina el arte visual, la educación ambiental y el monitoreo científico para concientizar sobre la conservación de los arrecifes de coral. A través de simulación creativa, mapas interactivos y datos en tiempo real, podrás explorar la diversidad marina, visibilizar el impacto ambiental y sumarte a la protección activa de nuestros océanos.
+      </p>
+    </div>
+
+    <div class="hero-badges">
+      <span class="pill-badge pill-arte">🎨 Arte y Camuflaje</span>
+      <span class="pill-badge pill-ciencia">🗺️ Monitoreo Científico</span>
+      <span class="pill-badge pill-educacion">🧩 Desafío Interactivo</span>
+    </div>
+
+    <a href="#contenido-app" class="btn-explorar">
+      <span>Comenzar Experiencia</span> 🌊
+    </a>
+  </div>
+
+  <a href="#contenido-app" class="scroll-arrow" title="Desplazar hacia abajo">▼</a>
+
+  <!-- OLA MARINA DE TRANSICIÓN -->
+  <div class="wave-container">
+    <svg class="wave-svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+      <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118.08,130.83,121.5,200,115.8,241.6,112.38,282.8,95.5,321.39,56.44Z"></path>
+    </svg>
+  </div>
+</section>
+
+<!-- CONTENIDO PRINCIPAL -->
+<div class="container" id="contenido-app">
+
+  <!-- SECCIÓN SIMULADOR DE CAMUFLAJE -->
+  <h2 class="section-title">🪸 Desafío de Camuflaje en Arrecife</h2>
+  
+  <div id="camuflaje-container">
+    <div class="panel-controles">
+      <div>
+        <label for="select-estado" style="font-weight: bold; margin-right: 8px;">Estado Arrecife:</label>
+        <select id="select-estado" style="padding: 6px; border-radius: 4px; background: #0f172a; color: #fff; border: 1px solid #38bdf8;">
+          <option value="muy_bueno">Muy Buen Estado</option>
+          <option value="bueno">Buen Estado</option>
+          <option value="regular">Estado Regular</option>
+          <option value="malo">Estado Malo</option>
+          <option value="critico">Estado Crítico</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="font-weight: bold; margin-right: 8px;">Pose:</label>
+        <button class="btn-control" onclick="cambiarPose('stand')">🧍 Recto</button>
+        <button class="btn-control" onclick="cambiarPose('tpose')">🧍‍♂️ T-Pose</button>
+        <button class="btn-control" onclick="cambiarPose('crouch')">🧘 Agachado</button>
+        <button class="btn-control" onclick="cambiarPose('star')">⭐ Estrella</button>
+        <button class="btn-control" onclick="cambiarPose('hero')">🏃 Acción</button>
+      </div>
+
+      <!-- ESCALA INDEPENDIENTE DEL PERSONAJE -->
+      <div style="display: flex; align-items: center; gap: 5px;">
+        <label style="font-weight: bold; font-size: 0.9rem;">Tamaño Personaje:</label>
+        <button class="btn-control" onclick="ajustarEscalaPersonaje(0.1)" title="Aumentar tamaño personaje">🧍 +</button>
+        <button class="btn-control" onclick="ajustarEscalaPersonaje(-0.1)" title="Reducir tamaño personaje">🧍 -</button>
+        <span id="char-scale-val" style="font-size: 0.85rem; color: #38bdf8;">100%</span>
+      </div>
+
+      <label class="toggle-modo">
+        <input type="checkbox" id="modo-pintar" style="cursor: pointer;">
+        <span style="font-weight: bold; font-size: 0.9rem;">🎨 Modo Pintar</span>
+      </label>
+
+      <!-- HERRAMIENTAS DE PINCEL PROFESIONAL -->
+      <div>
+        <label style="font-weight: bold; margin-right: 4px;">Tipo Pincel:</label>
+        <select id="select-brush-type" style="padding: 4px; border-radius: 4px; background: #0f172a; color: #fff; border: 1px solid #38bdf8; font-size: 0.85rem;">
+          <option value="round">🟢 Redondo</option>
+          <option value="soft">💧 Suave (Aerógrafo)</option>
+          <option value="square">⬛ Cuadrado</option>
+          <option value="line">✏️ Trazos</option>
+        </select>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <label style="font-weight: bold;">Pintura:</label>
+        <input type="color" id="color-picker" value="#ffffff" style="cursor: pointer; width: 35px; height: 35px; border: none; border-radius: 4px;">
+        <button id="btn-eyedropper" class="btn-control" style="background: #0284c7;">🧪 Gotero</button>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <label for="brush-size" style="font-weight: bold;">Tamaño:</label>
+        <input type="range" id="brush-size" min="2" max="60" value="12" style="width: 70px;">
+        <span id="brush-size-val">12px</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <label for="brush-opacity" style="font-weight: bold;">Opacidad:</label>
+        <input type="range" id="brush-opacity" min="10" max="100" value="100" style="width: 70px;">
+        <span id="brush-opacity-val">100%</span>
+      </div>
+
+      <button class="btn-control" onclick="limpiarPintura()" style="background: #ef4444; border-color: #f87171;" title="Borrar toda la pintura del personaje">🧹 Borrar Pintura</button>
+
+      <!-- ZOOM DEL MAPA / MUNDO -->
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <span style="font-size: 0.85rem; color: #cbd5e1;">Cámara:</span>
+        <button class="btn-control" onclick="ajustarZoom(0.2)">🔍 +</button>
+        <button class="btn-control" onclick="ajustarZoom(-0.2)">🔍 -</button>
+        <button class="btn-control" onclick="resetearVista()">🔄 Reset</button>
+      </div>
+
+      <button class="btn-control primary" onclick="abrirModalPublicar()">☁️ Publicar Trabajo</button>
+    </div>
+
+    <div id="canvas-viewport">
+      <div id="canvas-world">
+        <canvas id="bg-canvas" width="1068" height="561" style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
+        <canvas id="character-canvas" width="1068" height="561" style="position: absolute; top: 0; left: 0; z-index: 2;"></canvas>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+      <p style="font-size: 0.85rem; color: #94a3b8; margin: 0;">
+        💡 <strong>Controles:</strong> Mueve el personaje arrastrándolo. Usa <strong>"🧍 +" / "🧍 -"</strong> o la rueda del ratón sobre él para cambiar su tamaño. Activa "Modo Pintar" para dibujar libremente. Shift + Arrastrar desplaza la cámara.
+      </p>
+      <p style="font-size: 0.85rem; color: #38bdf8; font-style: italic; margin: 0;">
+        📍 Ubicación: <span id="nombre-ubicacion" style="font-weight: bold; color: #f8fafc;">Parque Nacional Cabo Pulmo, México</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- SECCIÓN DE MONITOREO Y NAVEGACIÓN -->
+  <h2 class="section-title">🗺️ Monitoreo de Ecosistemas Marinos</h2>
+  
+  <div class="lab-color-sec">
+    <div class="selector-grid">
+      <div>
+        <label for="sistemaSelect">1️⃣ Sistema de Monitoreo:</label>
+        <select id="sistemaSelect" onchange="actualizarNiveles()"></select>
+      </div>
+      <div>
+        <label for="nivelSelect">2️⃣ Nivel de Salud:</label>
+        <select id="nivelSelect" onchange="actualizarArrecifes()"></select>
+      </div>
+      <div>
+        <label for="arrecifeSelect">3️⃣ Arrecife Real:</label>
+        <select id="arrecifeSelect" onchange="cargarArrecife()"></select>
+      </div>
+    </div>
+
+    <div id="map-container"></div>
+    
+    <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+      <button class="btn-control" style="background-color: #dea54b; color: #0d1b2a; font-weight: bold;" onclick="abrirGoogleMaps()">🌐 Ver en Google Maps</button>
+      <button class="btn-control" style="background-color: #0284c7; font-weight: bold;" onclick="seleccionarArrecifeMapaAleatorio()">🎲 Arrecife Aleatorio en el Mapa</button>
+    </div>
+
+    <div class="info-box">
+      <strong>🔬 Razón Científica de su Estado:</strong>
+      <p id="razonTexto" style="margin: 5px 0 0 0;">Selecciona un arrecife para cargar su información...</p>
+    </div>
+  </div>
+
+  <!-- SECCIÓN DESPLEGABLE: CONSECUENCIAS DEL DESCUIDO CON JUEGO DE PALABRAS -->
+  <button class="btn-desplegable" onclick="toggleConsecuencias()">
+    <span>⚠️ Consecuencias del Descuido del Arrecife (Juego Desafío)</span>
+    <span id="flecha-desplegable">▼</span>
+  </button>
+  
+  <div id="panel-consecuencias" class="panel-consecuencias">
+    <p style="font-size: 0.95rem; color: #cbd5e1; margin-bottom: 10px; line-height: 1.5;">
+      El descuido de los arrecifes de coral provoca consecuencias graves que afectan tanto al medio ambiente como a la sociedad. <strong>¡Descifra la palabra revuelta para desbloquear la información de cada impacto!</strong>
+    </p>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 10px 15px; border-radius: 6px; border: 1px solid #334155; margin-bottom: 15px;">
+      <span style="font-size: 0.9rem; color: #cbd5e1;">🏆 Desafíos descifrados: <strong id="contador-desafios" style="color: #00ff66;">0</strong> de 9</span>
+      <span style="font-size: 0.85rem; color: #94a3b8;">💡 Puedes presionar Enter para validar tu respuesta</span>
+    </div>
+
+    <!-- GRID DE TARJETAS DE PALABRAS DESORDENADAS -->
+    <div id="juego-palabras-grid" class="juego-palabras-container"></div>
+  </div>
+
+  <!-- SECCIÓN DE INTERVENCIONES CIENTÍFICAS Y ACCIONES -->
+  <h2 class="section-title">🛠️ Soluciones e Intervenciones para la Recuperación Arrecifal</h2>
+
+  <!-- TÉCNICAS CIENTÍFICAS DE RESCATE -->
+  <h3 class="subsection-title">🔬 Técnicas Científicas (Alertas 2+ / Estados Malo y Crítico)</h3>
+  <p style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 15px;">
+    Cuando un arrecife entra en Alerta 2 o Superior (NOAA) o estado Malo/Crítico (ISA), las intervenciones pasivas ya no son suficientes. Estas técnicas avanzadas están logrando recuperar arrecifes al borde del colapso:
+  </p>
+  <div class="grid-acciones">
+    <div class="card-accion ciencia">
+      <h4>🧪 Viveros de Coral en Tierra</h4>
+      <p>Durante olas de calor extremo (Alertas 3 a 5), laboratorios como Mote Marine de Florida resguardan fragmentos de coral en tanques con temperatura controlada en tierra firme. Al pasar el evento térmico, se resembran sanos en el océano.</p>
+    </div>
+
+    <div class="card-accion ciencia">
+      <h4>🧬 Microfragmentación y "Súper Corales"</h4>
+      <p>Cortar corales sanos en pedazos milimétricos estimula su crecimiento hasta 40 veces más rápido. Se investigan y clonan especímenes supervivientes al calor para generar arrecifes más resistentes al cambio climático.</p>
+    </div>
+
+    <div class="card-accion ciencia">
+      <h4>☂️ Saturación de Sombra Artificial</h4>
+      <p>En la Gran Barrera de Coral de Australia, mallas flotantes ultraligeras bloquean hasta el 30% de la luz solar en días térmicos extremos, reduciendo la radiación y previniendo el blanqueamiento.</p>
+    </div>
+
+    <div class="card-accion ciencia">
+      <h4>⚡ Carbonato de Calcio y Tecnología Biorock</h4>
+      <p>En arrecifes destruidos, se instalan estructuras de concreto ecológico o mallas electrificadas con baja corriente que aceleran la calcificación natural, permitiendo fijación y crecimiento acelerado de nuevos corales.</p>
+    </div>
+  </div>
+
+  <!-- ACCIONES DÍA A DÍA -->
+  <h3 class="subsection-title" style="margin-top: 30px;">🏠 Acciones en tu Día a Día (Cómo ayudar desde casa)</h3>
+  <p style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 15px;">
+    Aunque no vivas en la costa, las decisiones diarias impactan la temperatura y la composición química de los océanos.
+  </p>
+
+  <h4 style="color: #38bdf8; margin: 15px 0 10px 0;">🌊 Si visitas la playa o viajas a zonas con arrecifes:</h4>
+  <div class="grid-acciones">
+    <div class="card-accion">
+      <h4>🧴 Bloqueador Solar 100% Biodegradable</h4>
+      <p>Evita oxibenzona y octinoxato, ya que aceleran el blanqueamiento. Elige etiquetas "Reef Safe" a base de óxido de zinc o dióxido de titanio no-nano.</p>
+    </div>
+
+    <div class="card-accion">
+      <h4>🤿 Turismo Responsable (No tocar)</h4>
+      <p>Al hacer esnórquel o buceo, jamás toques el coral ni te pares sobre él. Una pisada destruye colonias que tardaron décadas en formarse.</p>
+    </div>
+
+    <div class="card-accion">
+      <h4>⛵ Exige Operadores Certificados</h4>
+      <p>Asegúrate de contratar tours marinos que usen boyas de amarre permanentes en lugar de lanzar anclas sobre los arrecifes.</p>
+    </div>
+  </div>
+
+  <h4 style="color: #38bdf8; margin: 25px 0 10px 0;">🌆 Si vives lejos del mar (Acciones urbanas):</h4>
+  <div class="grid-acciones">
+    <div class="card-accion">
+      <h4>💡 Reduce tu Huella de Carbono</h4>
+      <p>Moderar el aire acondicionado, usar transporte público y desconectar aparatos eléctricos reduce las emisiones globales de CO₂ que calientan el agua del mar.</p>
+    </div>
+
+    <div class="card-accion">
+      <h4>🧽 Filtra tus Productos de Limpieza</h4>
+      <p>Elige detergentes libres de fosfatos. Los fosfatos en drenajes actúan como fertilizantes de macroalgas invasoras que asfixian los corales.</p>
+    </div>
+
+    <div class="card-accion">
+      <h4>🥤 Disminuye Plásticos de Un Solo Uso</h4>
+      <p>Evita plásticos desechables. Sus microplásticos son ingeridos por corales, bloqueando sus sistemas digestivos y causándoles inanición.</p>
+    </div>
+
+    <div class="card-accion">
+      <h4>🐟 Apoya el Comercio de Pesca Sostenible</h4>
+      <p>Consume productos marinos con sello sustentable (como MSC) para proteger especies clave como el pez loro, encargado de limpiar las algas nocivas.</p>
+    </div>
+  </div>
+
+  <!-- SECCIÓN COMUNIDAD -->
+  <h2 class="section-title">🌐 Galería de la Comunidad</h2>
+  <div id="grid-comunidad" class="grid-comunidad"></div>
+
+  <!-- SECCIÓN DE REFERENCIAS BIBLIOGRÁFICAS -->
+  <footer class="seccion-referencias">
+    <div class="referencias-titulo">📚 Referencias y Fuentes Informativas</div>
+    <ul class="referencias-lista">
+      <li class="referencia-item">
+        National Geographic. (2025, octubre). ¿Qué causa el blanqueamiento de los corales? Así es como amenaza la vida marina y humana. <em>National Geographic Latinoamérica</em>. <a href="https://www.nationalgeographicla.com/medio-ambiente/2025/10/que-causa-el-blanqueamiento-de-los-corales-asi-es-como-amenaza-la-vida-marina-y-humana" target="_blank" rel="noopener noreferrer" class="referencia-link">https://www.nationalgeographicla.com/medio-ambiente/2025/10/que-causa-el-blanqueamiento-de-los-corales-asi-es-como-amenaza-la-vida-marina-y-humana</a>
+      </li>
+      <li class="referencia-item">
+        Infobae. (2025, octubre 13). Advierten que la Tierra alcanzó el primer punto de inflexión climático global por la desaparición de los arrecifes de coral. <em>Infobae</em>. <a href="https://www.infobae.com/america/medio-ambiente/2025/10/13/advierten-que-la-tierra-alcanzo-el-primer-punto-de-inflexion-climatico-global-por-la-desaparicion-de-los-arrecifes-de-coral/" target="_blank" rel="noopener noreferrer" class="referencia-link">https://www.infobae.com/america/medio-ambiente/2025/10/13/advierten-que-la-tierra-alcanzo-el-primer-punto-de-inflexion-climatico-global-por-la-desaparicion-de-los-arrecifes-de-coral/</a>
+      </li>
+      <li class="referencia-item">
+        Gamers Wiki. (2025, octubre). Meccha Chameleon: Dos meses de Lemorion y Haganeiro. <em>Gamers Wiki</em>. <a href="https://gamers.wiki/es/juegos/meccha-chameleon/noticias/meccha-chameleon-dos-meses-de-lemorion-y-haganeiro" target="_blank" rel="noopener noreferrer" class="referencia-link">https://gamers.wiki/es/juegos/meccha-chameleon/noticias/meccha-chameleon-dos-meses-de-lemorion-y-haganeiro</a>
+      </li>
+    </ul>
+  </footer>
+
+</div>
+
+<!-- MODAL FELICITACIÓN Y INFORMACIÓN REVELADA -->
+<div id="modal-felicitacion" class="modal-felicitacion">
+  <div class="modal-felicitacion-content">
+    <div class="modal-felicitacion-header">
+      <div style="font-size: 3rem;">🎉👏</div>
+      <h3>¡Excelente Trabajo!</h3>
+      <p style="color: #cbd5e1; margin: 0; font-size: 0.95rem;">Has descifrado correctamente la consecuencia.</p>
+    </div>
+    
+    <div class="info-revelada-box">
+      <h4 id="modal-titulo-revelado"></h4>
+      <p id="modal-texto-revelado"></p>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <button class="btn-control primary" onclick="cerrarModalFelicitacion()" style="padding: 10px 25px; font-size: 1rem;">Continuar Explorando 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PUBLICAR TRABAJO -->
+<div id="modal-publicar" class="modal">
+  <div class="modal-content">
+    <h3 style="margin: 0; color: #38bdf8;">Publicar en la Comunidad</h3>
+    <input type="text" id="autor-input" placeholder="Tu Nombre o Apodo">
+    <textarea id="desc-input" rows="3" placeholder="Añade una descripción sobre tu camuflaje..."></textarea>
+    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+      <button class="btn-control" onclick="cerrarModalPublicar()">Cancelar</button>
+      <button class="btn-control primary" onclick="guardarPublicacion()">Subir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   0. ANIMACIÓN DE BANCO MASIVO DE PECES Y RETORNO RÁPIDO
+   ========================================================= */
+const heroCanvas = document.getElementById('hero-fish-canvas');
+const heroCtx = heroCanvas.getContext('2d');
+
+function ajustarCanvasHero() {
+  heroCanvas.width = heroCanvas.parentElement.clientWidth;
+  heroCanvas.height = heroCanvas.parentElement.clientHeight;
+}
+window.addEventListener('resize', ajustarCanvasHero);
+ajustarCanvasHero();
+
+class PezHero {
+  constructor(w, h) {
+    this.w = w;
+    this.h = h;
+    this.reset();
+  }
+
+  reset() {
+    this.x = Math.random() * this.w;
+    this.y = Math.random() * this.h;
+    this.vx = (Math.random() - 0.5) * 3;
+    this.vy = (Math.random() - 0.5) * 1.5;
+    this.size = Math.random() * 9 + 4;
+    this.color = ['#38bdf8', '#00ff66', '#f43f5e', '#facc15', '#a855f7', '#fb923c', '#2dd4bf'][Math.floor(Math.random() * 7)];
+    this.phase = Math.random() * Math.PI * 2;
+    this.isExploding = false;
+    this.alpha = 1;
+  }
+
+  update(peces) {
+    if (this.isExploding) {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.vy += 0.25; 
+      this.alpha -= 0.04; 
+
+      if (this.alpha <= 0) {
+        const lado = Math.floor(Math.random() * 4);
+        if (lado === 0) { this.x = -40; this.y = Math.random() * this.h; this.vx = Math.random() * 3 + 2; }
+        else if (lado === 1) { this.x = this.w + 40; this.y = Math.random() * this.h; this.vx = -(Math.random() * 3 + 2); }
+        else if (lado === 2) { this.x = Math.random() * this.w; this.y = -40; this.vy = Math.random() * 3 + 2; }
+        else { this.x = Math.random() * this.w; this.y = this.h + 40; this.vy = -(Math.random() * 3 + 2); }
+
+        this.isExploding = false;
+        this.alpha = 0.1; 
+      }
+    } else {
+      if (this.alpha < 1) {
+        this.alpha += 0.05; 
+      }
+
+      this.phase += 0.08;
+      
+      let avgVx = 0, avgVy = 0, count = 0;
+      peces.forEach(otro => {
+        if (otro !== this && !otro.isExploding) {
+          const dx = otro.x - this.x;
+          const dy = otro.y - this.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 100) {
+            avgVx += otro.vx;
+            avgVy += otro.vy;
+            count++;
+          }
+        }
+      });
+
+      if (count > 0) {
+        this.vx += (avgVx / count - this.vx) * 0.08;
+        this.vy += (avgVy / count - this.vy) * 0.08;
+      }
+
+      this.x += this.vx + Math.sin(this.phase) * 0.8;
+      this.y += this.vy + Math.cos(this.phase) * 0.5;
+
+      if (this.x < -80) this.x = this.w + 80;
+      if (this.x > this.w + 80) this.x = -80;
+      if (this.y < -80) this.y = this.h + 80;
+      if (this.y > this.h + 80) this.y = -80;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    const angle = Math.atan2(this.vy, this.vx);
+    ctx.rotate(angle);
+    ctx.fillStyle = this.color;
+    ctx.globalAlpha = Math.max(0, this.alpha);
+    
+    ctx.beginPath();
+    ctx.ellipse(0, 0, this.size * 1.3, this.size * 0.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(-this.size, 0);
+    ctx.lineTo(-this.size * 1.8, -this.size * 0.55);
+    ctx.lineTo(-this.size * 1.8, this.size * 0.55);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+const numPecesHero = 120;
+const listaPecesHero = [];
+for (let i = 0; i < numPecesHero; i++) {
+  listaPecesHero.push(new PezHero(heroCanvas.width, heroCanvas.height));
+}
+
+heroCanvas.addEventListener('click', (e) => {
+  const rect = heroCanvas.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const clickY = e.clientY - rect.top;
+
+  listaPecesHero.forEach(pez => {
+    const dx = pez.x - clickX;
+    const dy = pez.y - clickY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    
+    if (dist < 280) {
+      pez.isExploding = true;
+      const angle = Math.atan2(dy, dx);
+      const speed = Math.random() * 16 + 6;
+      pez.vx = Math.cos(angle) * speed;
+      pez.vy = Math.sin(angle) * speed - 3;
+      pez.alpha = 1;
+    }
+  });
+});
+
+function animarHero() {
+  heroCtx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+  listaPecesHero.forEach(pez => {
+    pez.update(listaPecesHero);
+    pez.draw(heroCtx);
+  });
+  requestAnimationFrame(animarHero);
+}
+requestAnimationFrame(animarHero);
+
+
+/* =========================================================
+   1. SIMULADOR DE CAMUFLAJE Y MANIQUÍ 2D AVANZADO
+   ========================================================= */
+const DATOS_ARRECIFE = {
+  muy_bueno: { 
+    imagen: "muy_buen_estado_2.jpg", 
+    fallback: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1068&q=80", 
+    ubicacion: "Parque Nacional Cabo Pulmo, México" 
+  },
+  bueno: { 
+    imagen: "buen_estado_2.jpg", 
+    fallback: "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?auto=format&fit=crop&w=1068&q=80", 
+    ubicacion: "Parque Nacional Arrecifes de Cozumel, México" 
+  },
+  regular: { 
+    imagen: "estado_regular_2.jpg", 
+    fallback: "https://images.unsplash.com/photo-1518467166778-b88f373ffec7?auto=format&fit=crop&w=1068&q=80", 
+    ubicacion: "Sistema Arrecifal Veracruzano, México" 
+  },
+  malo: { 
+    imagen: "estado_malo_2.jpg", 
+    fallback: "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?auto=format&fit=crop&w=1068&q=80", 
+    ubicacion: "El Farito, Cozumel, México" 
+  },
+  critico: { 
+    imagen: "muy_mal_estado_2.jpeg", 
+    fallback: "https://images.unsplash.com/photo-1540206395-68808572332f?auto=format&fit=crop&w=1068&q=80", 
+    ubicacion: "Maldivas" 
+  }
+};
+
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d', { willReadFrequently: true });
+const charCanvas = document.getElementById('character-canvas');
+const charCtx = charCanvas.getContext('2d');
+const viewport = document.getElementById('canvas-viewport');
+const world = document.getElementById('canvas-world');
+const txtUbicacion = document.getElementById('nombre-ubicacion');
+
+const paintCanvas = document.createElement('canvas');
+const BASE_CHAR_WIDTH = 140;
+const BASE_CHAR_HEIGHT = 260;
+paintCanvas.width = BASE_CHAR_WIDTH;
+paintCanvas.height = BASE_CHAR_HEIGHT;
+const paintCtx = paintCanvas.getContext('2d');
+
+let imgFondo = new Image();
+let charPos = { x: 450, y: 150 };
+let charScale = 1.0; 
+let currentPose = 'stand';
+let currentScale = 1; 
+let panOffset = { x: 0, y: 0 };
+
+let isPanning = false;
+let isPainting = false;
+let isDraggingChar = false;
+let lastPaintPos = null;
+let dragOffset = { x: 0, y: 0 };
+let startPan = { x: 0, y: 0 };
+
+const chkModoPintar = document.getElementById('modo-pintar');
+const brushSizeInput = document.getElementById('brush-size');
+const brushSizeVal = document.getElementById('brush-size-val');
+const brushOpacityInput = document.getElementById('brush-opacity');
+const brushOpacityVal = document.getElementById('brush-opacity-val');
+const selectBrushType = document.getElementById('select-brush-type');
+const colorPicker = document.getElementById('color-picker');
+const charScaleVal = document.getElementById('char-scale-val');
+
+actualizarEstado('muy_bueno');
+cargarComunidad();
+
+document.getElementById('select-estado').addEventListener('change', (e) => actualizarEstado(e.target.value));
+
+function actualizarEstado(estadoKey) {
+  const datos = DATOS_ARRECIFE[estadoKey];
+  txtUbicacion.textContent = datos.ubicacion;
+  cargarFondoAutomatico(datos);
+}
+
+function cargarFondoAutomatico(datos) {
+  imgFondo = new Image();
+  imgFondo.crossOrigin = "anonymous";
+  imgFondo.onload = () => {
+    bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+    bgCtx.drawImage(imgFondo, 0, 0, bgCanvas.width, bgCanvas.height);
+    renderizarManiqui();
+  };
+  imgFondo.onerror = () => {
+    if (imgFondo.src !== datos.fallback) imgFondo.src = datos.fallback;
+  };
+  imgFondo.src = datos.imagen;
+}
+
+const POSES = {
+  stand: (ctx) => {
+    ctx.beginPath(); ctx.arc(70, 35, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(50, 60, 40, 90); ctx.fillRect(25, 60, 20, 85); ctx.fillRect(95, 60, 20, 85);
+    ctx.fillRect(52, 153, 16, 95); ctx.fillRect(72, 153, 16, 95);
+  },
+  tpose: (ctx) => {
+    ctx.beginPath(); ctx.arc(70, 35, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(50, 60, 40, 90); ctx.fillRect(5, 65, 42, 18); ctx.fillRect(93, 65, 42, 18);
+    ctx.fillRect(52, 153, 16, 95); ctx.fillRect(72, 153, 16, 95);
+  },
+  crouch: (ctx) => {
+    ctx.beginPath(); ctx.arc(70, 65, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(50, 90, 40, 70); ctx.fillRect(30, 95, 18, 65); ctx.fillRect(92, 95, 18, 65);
+    ctx.fillRect(40, 163, 25, 65); ctx.fillRect(75, 163, 25, 65);
+  },
+  star: (ctx) => {
+    ctx.beginPath(); ctx.arc(70, 30, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(52, 55, 36, 85);
+    ctx.save(); ctx.translate(50, 60); ctx.rotate(-0.5); ctx.fillRect(-20, 0, 18, 80); ctx.restore();
+    ctx.save(); ctx.translate(90, 60); ctx.rotate(0.5); ctx.fillRect(0, 0, 18, 80); ctx.restore();
+    ctx.save(); ctx.translate(52, 140); ctx.rotate(0.3); ctx.fillRect(-10, 0, 16, 90); ctx.restore();
+    ctx.save(); ctx.translate(88, 140); ctx.rotate(-0.3); ctx.fillRect(-6, 0, 16, 90); ctx.restore();
+  },
+  hero: (ctx) => {
+    ctx.beginPath(); ctx.arc(70, 30, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(50, 55, 40, 85); ctx.fillRect(25, 35, 20, 80); ctx.fillRect(95, 25, 20, 80);
+    ctx.fillRect(48, 143, 18, 95); ctx.fillRect(74, 143, 20, 95);
+  }
+};
+
+function cambiarPose(poseKey) {
+  currentPose = poseKey;
+  renderizarManiqui();
+}
+
+function ajustarEscalaPersonaje(delta) {
+  charScale = Math.min(Math.max(0.4, charScale + delta), 2.5);
+  charScaleVal.textContent = `${Math.round(charScale * 100)}%`;
+  renderizarManiqui();
+}
+
+function renderizarManiqui() {
+  charCtx.clearRect(0, 0, charCanvas.width, charCanvas.height);
+  charCtx.save();
+  charCtx.translate(charPos.x, charPos.y);
+  charCtx.scale(charScale, charScale);
+  
+  charCtx.fillStyle = "#ffffff";
+  POSES[currentPose](charCtx);
+  
+  charCtx.globalCompositeOperation = 'source-atop';
+  charCtx.drawImage(paintCanvas, 0, 0);
+  charCtx.restore();
+}
+
+brushSizeInput.addEventListener('input', (e) => brushSizeVal.textContent = `${e.target.value}px`);
+brushOpacityInput.addEventListener('input', (e) => brushOpacityVal.textContent = `${e.target.value}%`);
+
+document.getElementById('btn-eyedropper').addEventListener('click', async () => {
+  if ('EyeDropper' in window) {
+    try {
+      const eyeDropper = new EyeDropper();
+      const result = await eyeDropper.open();
+      colorPicker.value = result.sRGBHex;
+    } catch (e) {}
+  }
+});
+
+function limpiarPintura() {
+  paintCtx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+  renderizarManiqui();
+}
+
+function ajustarZoom(delta) {
+  currentScale = Math.min(Math.max(0.8, currentScale + delta), 3);
+  actualizarTransformacion();
+}
+function resetearVista() {
+  currentScale = 1;
+  panOffset = { x: 0, y: 0 };
+  actualizarTransformacion();
+}
+function actualizarTransformacion() {
+  world.style.transform = `translate(${panOffset.x}px, ${panOffset.y}px) scale(${currentScale})`;
+}
+
+function getCharWidth() { return BASE_CHAR_WIDTH * charScale; }
+function getCharHeight() { return BASE_CHAR_HEIGHT * charScale; }
+
+function estaSobrePersonaje(x, y) {
+  const w = getCharWidth();
+  const h = getCharHeight();
+  return x >= charPos.x && x <= charPos.x + w && y >= charPos.y && y <= charPos.y + h;
+}
+
+function getPointerPosition(e) {
+  const rect = charCanvas.getBoundingClientRect();
+  const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches && e.touches.length > 0 ? e.touches[0].clientY : e.clientY;
+  const scaleX = charCanvas.width / rect.width;
+  const scaleY = charCanvas.height / rect.height;
+
+  return {
+    x: ((clientX - rect.left) * scaleX) / currentScale,
+    y: ((clientY - rect.top) * scaleY) / currentScale,
+    clientX,
+    clientY
+  };
+}
+
+function handleStart(e) {
+  const pos = getPointerPosition(e);
+  const mouseX = pos.x;
+  const mouseY = pos.y;
+
+  if (e.shiftKey || e.button === 1) {
+    isPanning = true;
+    startPan = { x: pos.clientX - panOffset.x, y: pos.clientY - panOffset.y };
+    viewport.style.cursor = 'grabbing';
+    return;
+  }
+  if (chkModoPintar.checked) {
+    isPainting = true;
+    lastPaintPos = null;
+    pintar(mouseX, mouseY);
+    return;
+  }
+  if (estaSobrePersonaje(mouseX, mouseY)) {
+    isDraggingChar = true;
+    dragOffset = { x: mouseX - charPos.x, y: mouseY - charPos.y };
+    viewport.style.cursor = 'grabbing';
+  } else {
+    isPanning = true;
+    startPan = { x: pos.clientX - panOffset.x, y: pos.clientY - panOffset.y };
+    viewport.style.cursor = 'grabbing';
+  }
+}
+
+function handleMove(e) {
+  if (!isPanning && !isDraggingChar && !isPainting) return;
+  const pos = getPointerPosition(e);
+  const mouseX = pos.x;
+  const mouseY = pos.y;
+
+  if (isPanning) {
+    panOffset.x = pos.clientX - startPan.x;
+    panOffset.y = pos.clientY - startPan.y;
+    actualizarTransformacion();
+  } else if (isDraggingChar) {
+    charPos.x = mouseX - dragOffset.x;
+    charPos.y = mouseY - dragOffset.y;
+    renderizarManiqui();
+  } else if (isPainting) {
+    pintar(mouseX, mouseY);
+  }
+}
+
+function handleEnd() {
+  isPanning = false;
+  isPainting = false;
+  isDraggingChar = false;
+  lastPaintPos = null;
+  viewport.style.cursor = chkModoPintar.checked ? 'crosshair' : 'default';
+}
+
+viewport.addEventListener('mousedown', handleStart);
+viewport.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) {
+    handleStart(e);
+  }
+}, { passive: true });
+
+window.addEventListener('mousemove', handleMove);
+window.addEventListener('touchmove', (e) => {
+  if (isPainting || isDraggingChar || isPanning) {
+    if (e.cancelable) e.preventDefault();
+    handleMove(e);
+  }
+}, { passive: false });
+
+window.addEventListener('mouseup', handleEnd);
+window.addEventListener('touchend', handleEnd);
+
+viewport.addEventListener('wheel', (e) => {
+  const pos = getPointerPosition(e);
+  if (estaSobrePersonaje(pos.x, pos.y) && !e.shiftKey) {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.05 : -0.05;
+    ajustarEscalaPersonaje(delta);
+  }
+}, { passive: false });
+
+function hexToRgb(hex) {
+  let c = hex.replace('#', '');
+  if (c.length === 3) c = c.split('').map(x => x + x).join('');
+  const num = parseInt(c, 16);
+  return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+}
+
+function pintar(x, y) {
+  const localX = (x - charPos.x) / charScale;
+  const localY = (y - charPos.y) / charScale;
+  const size = brushSizeInput.value / charScale;
+  const opacity = brushOpacityInput.value / 100;
+  const brushType = selectBrushType.value;
+  const rgb = hexToRgb(colorPicker.value);
+
+  paintCtx.save();
+
+  if (brushType === 'soft') {
+    const radius = size / 2;
+    const grad = paintCtx.createRadialGradient(localX, localY, 0, localX, localY, radius);
+    grad.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity * 0.4})`);
+    grad.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
+    paintCtx.fillStyle = grad;
+    paintCtx.beginPath();
+    paintCtx.arc(localX, localY, radius, 0, Math.PI * 2);
+    paintCtx.fill();
+  } else if (brushType === 'square') {
+    paintCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
+    paintCtx.fillRect(localX - size / 2, localY - size / 2, size, size);
+  } else if (brushType === 'line') {
+    paintCtx.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
+    paintCtx.lineWidth = size;
+    paintCtx.lineCap = 'square';
+    paintCtx.beginPath();
+    if (lastPaintPos) {
+      paintCtx.moveTo(lastPaintPos.x, lastPaintPos.y);
+      paintCtx.lineTo(localX, localY);
+    } else {
+      paintCtx.moveTo(localX, localY);
+      paintCtx.lineTo(localX + 0.1, localY + 0.1);
+    }
+    paintCtx.stroke();
+  } else { 
+    paintCtx.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
+    paintCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
+    paintCtx.lineWidth = size;
+    paintCtx.lineCap = 'round';
+    paintCtx.lineJoin = 'round';
+
+    if (lastPaintPos) {
+      paintCtx.beginPath();
+      paintCtx.moveTo(lastPaintPos.x, lastPaintPos.y);
+      paintCtx.lineTo(localX, localY);
+      paintCtx.stroke();
+    } else {
+      paintCtx.beginPath();
+      paintCtx.arc(localX, localY, size / 2, 0, Math.PI * 2);
+      paintCtx.fill();
+    }
+  }
+
+  paintCtx.restore();
+  lastPaintPos = { x: localX, y: localY };
+  renderizarManiqui();
+}
+
+
+/* =========================================================
+   2. SISTEMA DE MAPA Y DATOS
+   ========================================================= */
+const datosMaestros = [
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟢 Nivel: Muy Bien", 
+        arrecife: "Arrecife Tubbataha (Filipinas)", 
+        lat: 8.8500, lon: 119.9167, 
+        razon: "Goza de una cobertura de coral vivo excepcional y biomasa récord de tiburones gracias a un estricto estatus de 'Zona de No Captura' y patrullaje militar continuo contra la pesca ilegal."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟢 Nivel: Muy Bien", 
+        arrecife: "Atolón Palmyra (Océano Pacífico Central)", 
+        lat: 5.8885, lon: -162.0784, 
+        razon: "Muestra una salud próspera debido a su aislamiento geográfico total de los humanos y a exitosos programas de erradicación de ratas invasoras en las islas que estabilizon los nutrientes de las aves hacia el mar."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟢 Nivel: Muy Bien", 
+        arrecife: "Arrecife de Kingman (Línea de las Islas)", 
+        lat: 6.3833, lon: -162.3667, 
+        razon: "Considerado uno de los más puros del mundo; sus depredadores (tiburones y pargos) superan en peso a las presas, un comportamiento exclusivo de ecosistemas intactos y sin afectación antropogénica."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟡 Nivel: Bien", 
+        arrecife: "Arrecife Banco Chinchorro (Quintana Roo, México)", 
+        lat: 18.5833, lon: -87.3167, 
+        razon: "Es uno de los mejor conservados del Caribe debido a su distancia de la costa, lo que lo mantiene a salvo de aguas residuales del turismo masivo, aunque vigilado de cerca por sargazo acumulado."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟡 Nivel: Bien", 
+        arrecife: "Reserva Marina Hol Chan (San Pedro, Belice)", 
+        lat: 17.8711, lon: -87.9622, 
+        razon: "Se mantiene en buen estado gracias a la fuerte regulación de operadores turísticos locales, pero muestra una ligera disminución de peces comerciales grandes en sus bordes periféricos."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟡 Nivel: Bien", 
+        arrecife: "Bahía de Hanauma (Honolulu, Hawái, EE. UU.)", 
+        lat: 21.2690, lon: -157.6938, 
+        razon: "Presenta una buena estructura de coral viva debido a límites estrictos diarios en el número de turistas y días obligatorios de descanso (cierre al público) implementados por las autoridades locales."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟠 Nivel: Regular", 
+        arrecife: "Arrecife Cayo Pigeon (Honduras)", 
+        lat: 16.0833, lon: -85.9000, 
+        razon: "Evaluado como regular en los monitoreos debido a un incremento paulatino de macroalgas carnosas que compiten con el coral por espacio, provocado por la sobrepesca histórica de peces loro herbívoros."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟠 Nivel: Regular", 
+        arrecife: "Arrecife de Ningaloo (Australia Occidental)", 
+        lat: -22.6667, lon: 113.6667, 
+        razon: "Aunque estructuralmente fuerte, está bajo un estado regular por el estrés constante debido a actividades turísticas en aumento y brotes periódicos de la corona de espinas (una estrella de mar que devora corales)."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟠 Nivel: Regular", 
+        arrecife: "Arrecifes de Cayos Miskitos (Nicaragua)", 
+        lat: 14.3833, lon: -82.7667, 
+        razon: "Aislados pero clasificados en este nivel intermedio debido al severo impacto físico e hidrológico dejado por el paso consecutivo de huracanes intensos en años pasados."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🔴 Nivel: Mal", 
+        arrecife: "Arrecife Limones (Puerto Morelos, México)", 
+        lat: 20.8500, lon: -86.8667, 
+        razon: "Afectado críticamente por la propagación de la Enfermedad de Pérdida de Tejido de Coral Duro (SCTLD), sumado al exceso de nutrientes costeros que disparan el crecimiento de algas nocivas."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🔴 Nivel: Mal", 
+        arrecife: "Cayos de la Florida (Cayo Largo, EE. UU.)", 
+        lat: 25.0865, lon: -80.4473, 
+        razon: "Muestra un estado biológico muy pobre debido a décadas de escorrentía urbana, contaminación química costera de zonas residenciales y una drástica pérdida de la complejidad del ecosistema."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🔴 Nivel: Mal", 
+        arrecife: "Arrecifes de la Bahía de Manila (Filipinas)", 
+        lat: 14.5000, lon: 120.7500, 
+        razon: "Severamente dañados por la contaminación industrial plástica, vertidos directos de aguas residuales sin tratar y el dragado destructivo para el desarrollo urbano de la costa."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟤 Nivel: Crítico", 
+        arrecife: "Arrecife de Varadero (Cartagena, Colombia)", 
+        lat: 10.3000, lon: -75.5833, 
+        razon: "Colapsado casi en su totalidad debido a la sedimentación masiva generada por la ampliación de canales de navegación industrial, que prácticamente sepulta y asfixia a los corales bajo el lodo."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟤 Nivel: Crítico", 
+        arrecife: "Cayo Corker (Zonas no protegidas, Belice)", 
+        lat: 17.7428, lon: -88.0281, 
+        razon: "Presenta un estado crítico por una combinación letal de sobrepesca de peces comerciales, anclaje ilegal de embarcaciones turísticas y la falta total de infraestructura para el tratamiento de aguas en la zona."
+    },
+    { 
+        sistema: "Índice de Salud Arrecifal (ISA)", 
+        nivel: "🟤 Nivel: Crítico", 
+        arrecife: "Arrecifes de la Isla de Okinawa (Zonas urbanas, Japón)", 
+        lat: 26.5000, lon: 127.9000, 
+        razon: "Prácticamente destruidos y cubiertos de algas por la escorrentía descontrolada de sedimentos agrícolas arcillosos (suelo rojo) después de fuertes lluvias costeras modificadas por infraestructura artificial."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "⚪ Nivel: Sin Estrés (No Stress)", 
+        arrecife: "Arrecifes del norte del Mar Rojo (Egipto)", 
+        lat: 27.2579, lon: 33.8116, 
+        razon: "Temperaturas estables y óptimas; además, estos corales poseen una mutación genética natural única que los hace tolerantes a incrementos térmicos moderados."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "⚪ Nivel: Sin Estrés (No Stress)", 
+        arrecife: "Arrecifes de Fiyi (Sur del Pacífico)", 
+        lat: -17.7134, lon: 178.0650, 
+        razon: "Monitoreados temporalmente sin estrés en épocas de surgencias marinas profundas que traen aguas frías a la superficie, protegiéndolos de masas de aire cálido superficiales."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "⚪ Nivel: Sin Estrés (No Stress)", 
+        arrecife: "Arrecife de Coral de la Isla Lord Howe (Australia)", 
+        lat: -31.5553, lon: 159.0821, 
+        razon: "Al ser el arrecife más austral del planeta, las aguas templadas y corrientes frías del sur evitan que el calentamiento global genere olas de calor extremas en esta latitud."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🟡 Nivel: Vigilancia / Advertencia (Watch / Warning)", 
+        arrecife: "Arrecifes de las Islas Galápagos (Ecuador)", 
+        lat: -0.9538, lon: -90.9656, 
+        razon: "Entran constantemente en fase de vigilancia al registrarse fluctuaciones leves de temperatura relacionadas con el inicio de los ciclos climáticos del fenómeno de El Niño."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🟡 Nivel: Vigilancia / Advertencia (Watch / Warning)", 
+        arrecife: "Bancos de Saba (Caribe Neerlandés)", 
+        lat: 17.4167, lon: -63.2333, 
+        razon: "Aguas ligeramente por encima de su promedio estacional; satélites detectan un calentamiento menor que estresa los tejidos y causa palidez temporal en corales blandos."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🟡 Nivel: Vigilancia / Advertencia (Watch / Warning)", 
+        arrecife: "Atolón de Malé (Maldivas)", 
+        lat: 4.1755, lon: 73.5093, 
+        razon: "Monitoreado frecuentemente bajo advertencia por corrientes estacionales cálidas de verano que elevan la temperatura de la superficie marina a niveles incómodos para los pólipos de coral."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🟠 Nivel: Alerta Nivel 1 (Alert Level 1)", 
+        arrecife: "Gran Barrera de Coral (Sector Central, Australia)", 
+        lat: -18.2871, lon: 147.6992, 
+        razon: "Colocada bajo este nivel al acumular varias semanas consecutivas con temperaturas elevadas, provocando un blanqueamiento generalizado visible desde el aire."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🟠 Nivel: Alerta Nivel 1 (Alert Level 1)", 
+        arrecife: "Parque Nacional Tayrona (Colombia)", 
+        lat: 11.3000, lon: -74.1333, 
+        razon: "Alerta activada por un estancamiento del agua cálida caribeña durante meses de poco viento, forzando a los corales a expulsar sus algas simbióticas (zooxantelas)."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🟠 Nivel: Alerta Nivel 1 (Alert Level 1)", 
+        arrecife: "Arrecife de Cozumel (Zonas profundas, México)", 
+        lat: 20.4229, lon: -86.9223, 
+        razon: "Alcanza este nivel cuando las temperaturas superficiales cálidas penetran a más de 15 metros, induciendo el inicio del blanqueamiento en especies de coral masivo."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🔴 Nivel: Alerta Nivel 2 (Alert Level 2)", 
+        arrecife: "Cayos de Florida (Santuario Marino, EE. UU.)", 
+        lat: 24.5551, lon: -81.7800, 
+        razon: "Colocados repetidamente en esta categoría de alta emergencia por olas de calor marinas sin precedentes, donde el agua supera los 32 °C durante semanas consecutivas."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🔴 Nivel: Alerta Nivel 2 (Alert Level 2)", 
+        arrecife: "Isla de Navidad (Kiribati)", 
+        lat: 1.8721, lon: -157.3631, 
+        razon: "Expuesta a un calor marino extremo sostenido durante meses debido a El Niño severo, provocando que los corales no solo se blanqueen, sino que comiencen a morir por inanición térmica."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🔴 Nivel: Alerta Nivel 2 (Alert Level 2)", 
+        arrecife: "Arrecifes de la Isla de Phuket (Tailandia)", 
+        lat: 7.8804, lon: 98.3923, 
+        razon: "Registran Alerta 2 durante picos de calor extremo estacional en el Mar de Andamán, resultando en una mortandad masiva de corales ramificados de crecimiento rápido."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🔥 Nivel: Alerta Niveles 3 a 5 (Extremo)", 
+        arrecife: "Arrecife de Sombrero Key (Florida, EE. UU.)", 
+        lat: 24.6272, lon: -81.1103, 
+        razon: "Experimentó condiciones extremas donde las temperaturas del agua rompieron récords históricos; esto causó la muerte instantánea del tejido de coral (mortalidad directa por calor antes de poder blanquearse)."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🔥 Nivel: Alerta Niveles 3 a 5 (Extremo)", 
+        arrecife: "Gran Barrera de Coral (Sector Extremo Norte, Australia)", 
+        lat: -12.5000, lon: 143.8000, 
+        razon: "Clasificada en estos nuevos niveles de peligro severo de la NOAA tras olas de calor consecutivas que destruyeron bancos enteros de corales milenarios que solían resistir tormentas."
+    },
+    { 
+        sistema: "Semáforo de Alertas Térmicas (NOAA)", 
+        nivel: "🔥 Nivel: Alerta Niveles 3 a 5 (Extremo)", 
+        arrecife: "Arrecifes del Golfo de Omán (Medio Oriente)", 
+        lat: 24.0000, lon: 58.5000, 
+        razon: "Sometidos a condiciones de calor sofocante extremo fuera de todo parámetro histórico medido por satélite, empujando a especies nativas ultra-resistentes al límite absoluto de su supervivencia biológica."
+    }
+];
+
+let mapa;
+let marcador;
+let arrecifeActual = null;
+
+function inicializarMapa() {
+    if (mapa) {
+        mapa.remove();
+    }
+
+    mapa = L.map('map-container').setView([20, 0], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(mapa);
+    
+    setTimeout(() => {
+        mapa.invalidateSize();
+    }, 200);
+}
+
+function poblarSistemas() {
+    const sistemaSelect = document.getElementById("sistemaSelect");
+    const sistemasUnicos = [...new Set(datosMaestros.map(item => item.sistema))];
+    
+    sistemaSelect.innerHTML = "";
+    sistemasUnicos.forEach(sistema => {
+        const opt = document.createElement("option");
+        opt.value = sistema;
+        opt.textContent = sistema;
+        sistemaSelect.appendChild(opt);
+    });
+
+    actualizarNiveles();
+}
+
+function actualizarNiveles() {
+    const sistemaSel = document.getElementById("sistemaSelect").value;
+    const nivelSelect = document.getElementById("nivelSelect");
+    
+    const nivelesFiltrados = datosMaestros
+        .filter(item => item.sistema === sistemaSel)
+        .map(item => item.nivel);
+    const nivelesUnicos = [...new Set(nivelesFiltrados)];
+
+    nivelSelect.innerHTML = "";
+    nivelesUnicos.forEach(nivel => {
+        const opt = document.createElement("option");
+        opt.value = nivel;
+        opt.textContent = nivel;
+        nivelSelect.appendChild(opt);
+    });
+
+    actualizarArrecifes();
+}
+
+function actualizarArrecifes() {
+    const sistemaSel = document.getElementById("sistemaSelect").value;
+    const nivelSel = document.getElementById("nivelSelect").value;
+    const arrecifeSelect = document.getElementById("arrecifeSelect");
+
+    const arrecifesFiltrados = datosMaestros.filter(
+        item => item.sistema === sistemaSel && item.nivel === nivelSel
+    );
+
+    arrecifeSelect.innerHTML = "";
+    arrecifesFiltrados.forEach((item) => {
+        const opt = document.createElement("option");
+        opt.value = item.arrecife;
+        opt.textContent = item.arrecife;
+        arrecifeSelect.appendChild(opt);
+    });
+
+    cargarArrecife();
+}
+
+function cargarArrecife() {
+    const nombreArrecife = document.getElementById("arrecifeSelect").value;
+    arrecifeActual = datosMaestros.find(item => item.arrecife === nombreArrecife);
+
+    if (!arrecifeActual) return;
+
+    mapa.setView([arrecifeActual.lat, arrecifeActual.lon], 8);
+    
+    if (marcador) {
+        mapa.removeLayer(marcador);
+    }
+
+    marcador = L.marker([arrecifeActual.lat, arrecifeActual.lon]).addTo(mapa)
+        .bindPopup(`<b>${arrecifeActual.arrecife}</b><br>Estado: ${arrecifeActual.nivel}`)
+        .openPopup();
+
+    document.getElementById("razonTexto").textContent = arrecifeActual.razon;
+
+    mapa.invalidateSize();
+}
+
+function seleccionarArrecifeMapaAleatorio() {
+    const itemAleatorio = datosMaestros[Math.floor(Math.random() * datosMaestros.length)];
+    document.getElementById("sistemaSelect").value = itemAleatorio.sistema;
+    actualizarNiveles();
+    document.getElementById("nivelSelect").value = itemAleatorio.nivel;
+    actualizarArrecifes();
+    document.getElementById("arrecifeSelect").value = itemAleatorio.arrecife;
+    cargarArrecife();
+}
+
+function abrirGoogleMaps() {
+    if (!arrecifeActual) return;
+    const url = `https://www.google.com/maps?q=${arrecifeActual.lat},${arrecifeActual.lon}`;
+    window.open(url, '_blank');
+}
+
+function toggleConsecuencias() {
+  const panel = document.getElementById('panel-consecuencias');
+  const flecha = document.getElementById('flecha-desplegable');
+  
+  if (panel.classList.contains('activo')) {
+    panel.classList.remove('activo');
+    panel.style.maxHeight = null;
+    flecha.textContent = '▼';
+  } else {
+    panel.classList.add('activo');
+    panel.style.maxHeight = panel.scrollHeight + 60 + "px";
+    flecha.textContent = '▲';
+  }
+}
+
+
+/* =========================================================
+   3. JUEGO INTERACTIVO DE CONSECUENCIAS
+   ========================================================= */
+const CONSECUENCIAS_DATOS = [
+  {
+    id: 1,
+    categoria: "Ecológica",
+    badgeClass: "badge-ecologica",
+    palabraCorrecta: "BIODIVERSIDAD",
+    palabraDesordenada: "V R B I O A I D D E D I S",
+    pista: "🐟 Afecta al 50% de las especies de peces marinos...",
+    titulo: "🐟 Pérdida de biodiversidad",
+    texto: "Cerca del 50 % de las especies de peces marinos dependen de los arrecifes en alguna etapa de su vida. Su desaparición implica la pérdida de hábitats y cadenas alimenticias completas."
+  },
+  {
+    id: 2,
+    categoria: "Ecológica",
+    badgeClass: "badge-ecologica",
+    palabraCorrecta: "BLANQUEAMIENTO",
+    palabraDesordenada: "M N I Q E B L O A U T E A",
+    pista: "🪸 Ocurre cuando el coral expulsa sus algas simbióticas...",
+    titulo: "🪸 Blanqueamiento masivo",
+    texto: "El aumento de la temperatura y la acidificación del océano provocan que los corales expulsen las algas simbióticas, quedando blancos y debilitados. Esto puede llevar a su muerte irreversible."
+  },
+  {
+    id: 3,
+    categoria: "Ecológica",
+    badgeClass: "badge-ecologica",
+    palabraCorrecta: "DOMINO",
+    palabraDesordenada: "N D M O O I",
+    pista: "🌀 Un efecto en cadena que altera todo el ecosistema...",
+    titulo: "🌀 Efecto dominó en ecosistemas",
+    texto: "La desaparición de corales afecta a moluscos, crustáceos y aves marinas, alterando el equilibrio ecológico. Incluso factores externos como especies invasoras (ej. ratas en islas) reducen nutrientes esenciales para los arrecifes."
+  },
+  {
+    id: 4,
+    categoria: "Económica",
+    badgeClass: "badge-economica",
+    palabraCorrecta: "PESCA",
+    palabraDesordenada: "S P C A E",
+    pista: "🎣 Actividad vital para la seguridad alimentaria golpeada...",
+    titulo: "🎣 Pesca",
+    texto: "La reducción de especies asociadas a los arrecifes disminuye la captura de peces, afectando la seguridad alimentaria de millones de personas."
+  },
+  {
+    id: 5,
+    categoria: "Económica",
+    badgeClass: "badge-economica",
+    palabraCorrecta: "TURISMO",
+    palabraDesordenada: "R U T O M S I",
+    pista: "🏖️ Fuente clave de empleo en playas como Cancún o Cozumel...",
+    titulo: "🏖️ Turismo",
+    texto: "Lugares como Cancún y Cozumel dependen de arrecifes saludables para atraer visitantes. Su deterioro reduce ingresos y empleos en comunidades costeras."
+  },
+  {
+    id: 6,
+    categoria: "Económica",
+    badgeClass: "badge-economica",
+    palabraCorrecta: "MEDICINAS",
+    palabraDesordenada: "I D A E I M C N S",
+    pista: "💊 Compuestos naturales marinos para la salud humana...",
+    titulo: "💊 Medicinas y ciencia",
+    texto: "Muchos compuestos para tratamientos médicos provienen de organismos marinos asociados a los corales. Su pérdida limita avances en salud."
+  },
+  {
+    id: 7,
+    categoria: "Social / Clima",
+    badgeClass: "badge-social",
+    palabraCorrecta: "BARRERA",
+    palabraDesordenada: "R E R A A R B",
+    pista: "🌊 Protección natural que nos cubre de los huracanes...",
+    titulo: "🌊 Protección costera",
+    texto: "Los arrecifes actúan como barreras naturales contra huracanes y tormentas. Sin ellos, las costas quedan más vulnerables a desastres naturales."
+  },
+  {
+    id: 8,
+    categoria: "Social / Clima",
+    badgeClass: "badge-social",
+    palabraCorrecta: "CLIMA",
+    palabraDesordenada: "M L I A C",
+    pista: "🌍 Punto de inflexión global por desequilibrio de gases...",
+    titulo: "🌍 Cambio climático",
+    texto: "La desaparición masiva de corales marca un punto de inflexión climático global, afectando la regulación de gases y la resiliencia del planeta."
+  },
+  {
+    id: 9,
+    categoria: "Social / Clima",
+    badgeClass: "badge-social",
+    palabraCorrecta: "MIGRACIONES",
+    palabraDesordenada: "G R I N C O M I S A E S",
+    pista: "🚨 Crisis provocada cuando las comunidades pierden su sustento...",
+    titulo: "🚨 Crisis humanitarias",
+    texto: "Comunidades costeras que dependen de los arrecifes enfrentan migraciones, pérdida de sustento y mayor exposición a fenómenos extremos."
+  }
+];
+
+let respuestasResueltas = new Set();
+
+function renderizarJuegoPalabras() {
+  const container = document.getElementById('juego-palabras-grid');
+  if (!container) return;
+  container.innerHTML = '';
+
+  CONSECUENCIAS_DATOS.forEach(item => {
+    const yaResuelto = respuestasResueltas.has(item.id);
+    const card = document.createElement('div');
+    card.className = `card-juego-palabra ${yaResuelto ? 'completada' : ''}`;
+    card.id = `card-juego-${item.id}`;
+
+    card.innerHTML = `
+      <span class="badge-juego ${item.badgeClass}">${item.categoria}</span>
+      <div style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Pista: ${item.pista}</div>
+      <div class="palabra-desordenada">${item.palabraDesordenada}</div>
+      ${yaResuelto ? `
+        <div style="color: #00ff66; font-weight: bold; text-align: center; font-size: 0.9rem; padding: 6px; background: rgba(0,255,102,0.1); border-radius: 4px;">
+          ✓ ¡Resuelto! (${item.palabraCorrecta})
+        </div>
+        <button class="btn-control" onclick="verInfoDeNuevo(${item.id})" style="font-size: 0.85rem; width: 100%;">📖 Leer Información Revelada</button>
+      ` : `
+        <input type="text" id="input-juego-${item.id}" class="input-adivinar" placeholder="Escribe la palabra..." onkeypress="evaluarEnter(event, ${item.id})">
+        <div class="box-acciones-juego">
+          <button class="btn-control primary" style="flex: 1;" onclick="verificarRespuesta(${item.id})">Adivinar 🔍</button>
+        </div>
+      `}
+    `;
+    container.appendChild(card);
+  });
+}
+
+function normalizarTexto(texto) {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
+}
+
+function evaluarEnter(e, id) {
+  if (e.key === 'Enter') {
+    verificarRespuesta(id);
+  }
+}
+
+function verificarRespuesta(id) {
+  const item = CONSECUENCIAS_DATOS.find(d => d.id === id);
+  const input = document.getElementById(`input-juego-${id}`);
+  if (!input || !item) return;
+
+  const intento = normalizarTexto(input.value);
+  const objetivo = normalizarTexto(item.palabraCorrecta);
+
+  if (intento === objetivo) {
+    respuestasResueltas.add(id);
+    document.getElementById('contador-desafios').textContent = respuestasResueltas.size;
+    renderizarJuegoPalabras();
+    abrirModalFelicitacion(item.titulo, item.texto);
+  } else {
+    input.style.borderColor = '#ef4444';
+    input.placeholder = '¡Inténtalo de nuevo!';
+    setTimeout(() => {
+      input.style.borderColor = '#334155';
+    }, 1200);
+  }
+}
+
+function verInfoDeNuevo(id) {
+  const item = CONSECUENCIAS_DATOS.find(d => d.id === id);
+  if (item) {
+    abrirModalFelicitacion(item.titulo, item.texto);
+  }
+}
+
+function abrirModalFelicitacion(titulo, texto) {
+  document.getElementById('modal-titulo-revelado').textContent = titulo;
+  document.getElementById('modal-texto-revelado').textContent = texto;
+  document.getElementById('modal-felicitacion').style.display = 'flex';
+}
+
+function cerrarModalFelicitacion() {
+  document.getElementById('modal-felicitacion').style.display = 'none';
+  const panel = document.getElementById('panel-consecuencias');
+  if (panel && panel.classList.contains('activo')) {
+    panel.style.maxHeight = panel.scrollHeight + 80 + "px";
+  }
+}
+
+
+/* =========================================================
+   4. LÓGICA DE LA COMUNIDAD Y ALMACENAMIENTO
+   ========================================================= */
+function abrirModalPublicar() {
+  document.getElementById('modal-publicar').style.display = 'flex';
+}
+function cerrarModalPublicar() {
+  document.getElementById('modal-publicar').style.display = 'none';
+}
+
+function generarCapturaCompleta() {
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = bgCanvas.width;
+  tempCanvas.height = bgCanvas.height;
+  const tempCtx = tempCanvas.getContext('2d');
+  
+  tempCtx.drawImage(bgCanvas, 0, 0);
+  tempCtx.drawImage(charCanvas, 0, 0);
+  
+  return tempCanvas.toDataURL('image/png');
+}
+
+function guardarPublicacion() {
+  const autor = document.getElementById('autor-input').value.trim() || 'Anónimo';
+  const descripcion = document.getElementById('desc-input').value.trim() || 'Sin descripción';
+  const imagenData = generarCapturaCompleta();
+
+  const nuevaPublicacion = {
+    id: Date.now(),
+    autor: autor,
+    descripcion: descripcion,
+    imagen: imagenData,
+    comentarios: []
+  };
+
+  let publicaciones = JSON.parse(localStorage.getItem('comunidad_camuflaje') || '[]');
+  publicaciones.unshift(nuevaPublicacion);
+  localStorage.setItem('comunidad_camuflaje', JSON.stringify(publicaciones));
+
+  cerrarModalPublicar();
+  document.getElementById('autor-input').value = '';
+  document.getElementById('desc-input').value = '';
+  
+  cargarComunidad();
+}
+
+function cargarComunidad() {
+  const grid = document.getElementById('grid-comunidad');
+  grid.innerHTML = '';
+  const publicaciones = JSON.parse(localStorage.getItem('comunidad_camuflaje') || '[]');
+
+  if (publicaciones.length === 0) {
+    grid.innerHTML = '<p style="color: #94a3b8; grid-column: 1/-1;">Aún no hay publicaciones en la comunidad. ¡Sé el primero en subir la tuya!</p>';
+    return;
+  }
+
+  publicaciones.forEach(pub => {
+    const card = document.createElement('div');
+    card.className = 'card-publicacion';
+    card.innerHTML = `
+      <img src="${pub.imagen}" alt="Trabajo de ${pub.autor}">
+      <div class="card-body">
+        <h4 class="card-autor">👤 ${pub.autor}</h4>
+        <p class="card-desc">${pub.descripcion}</p>
+        <div class="comentarios-seccion">
+          <div class="lista-comentarios" id="comentarios-${pub.id}">
+            ${pub.comentarios.map(c => `<div class="comentario-item"><strong>${c.usuario}:</strong>${c.texto}</div>`).join('')}
+          </div>
+          <div class="input-comentario-box">
+            <input type="text" id="input-comentario-${pub.id}" placeholder="Escribe un comentario...">
+            <button class="btn-control primary" onclick="agregarComentario(${pub.id})">💬</button>
+          </div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function agregarComentario(pubId) {
+  const input = document.getElementById(`input-comentario-${pubId}`);
+  const texto = input.value.trim();
+  if (!texto) return;
+
+  let publicaciones = JSON.parse(localStorage.getItem('comunidad_camuflaje') || '[]');
+  const pub = publicaciones.find(p => p.id === pubId);
+  
+  if (pub) {
+    pub.comentarios.push({
+      usuario: 'Visitante',
+      texto: texto
+    });
+    localStorage.setItem('comunidad_camuflaje', JSON.stringify(publicaciones));
+    cargarComunidad();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  inicializarMapa();
+  poblarSistemas();
+  renderizarJuegoPalabras();
+});
+</script>
+</body>
+</html>
